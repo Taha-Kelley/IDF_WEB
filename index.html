@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDF Pro | ابزار حرفه‌ای فرمت‌بندی اسناد فارسی و انگلیسی</title>
+<meta name="description" content="IDF Pro — تبدیل حرفه‌ای متن به Word با پشتیبانی کامل راست‌به‌چپ/چپ‌به‌راست، دقت و سرعت بالا و سیستم لایسنس آفلاین امن.">
+<meta property="og:title" content="IDF Pro">
+<meta property="og:description" content="فرمت‌بندی حرفه‌ای اسناد فارسی و انگلیسی با دقت، سرعت و امنیت بالا.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="shortcut icon" href="icon.ico">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/all.min.css">
+<style>
+:root{
+  --bg-black:#07080a;
+  --bg-panel:#111318;
+  --bg-panel-2:#15171d;
+  --bg-card:#14161b;
+  --border-soft:#22252c;
+  --border-soft-2:#2b2e37;
+  --accent-blue:#04508f;
+  --accent-blue-bright:#1479d6;
+  --accent-blue-glow:#3aa8ff;
+  --accent-gold:#e8a23a;
+  --accent-gold-bright:#f5b94f;
+  --accent-violet:#8b7cf6;
+  --text-primary:#f5f5f7;
+  --text-secondary:#a6a8b3;
+  --text-muted:#6b6d78;
+  --success:#3ecf8e;
+  --danger:#ef4444;
+  --radius-lg:26px;
+  --radius-md:18px;
+  --radius-sm:12px;
+  --radius-pill:999px;
+  --shadow-soft:0 10px 40px rgba(0,0,0,0.5);
+  --shadow-glow-blue:0 0 40px rgba(20,121,214,0.28);
+  --shadow-glow-gold:0 0 30px rgba(232,162,58,0.24);
+  --font-fa:'Vazirmatn','Inter',Tahoma,sans-serif;
+  --font-en:'Inter','Vazirmatn',Tahoma,sans-serif;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth; overflow-x:hidden;}
+
+body{
+  font-family:var(--font-fa);
+  background:var(--bg-black);
+  color:var(--text-primary);
+  line-height:1.8;
+  overflow-x:hidden;
+  max-width:100vw;
+  position:relative;
+}
+html[data-lang="en"] body{ font-family:var(--font-en); line-height:1.7; }
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+/* ---------- Layered atmospheric background ---------- */
+.bg-layer{position:fixed; inset:0; z-index:0; pointer-events:none;}
+.bg-mesh{
+  background:
+    radial-gradient(ellipse 920px 560px at 12% -8%, rgba(20,121,214,0.20), transparent 62%),
+    radial-gradient(ellipse 760px 560px at 104% 6%, rgba(232,162,58,0.10), transparent 58%),
+    radial-gradient(ellipse 640px 520px at 80% 78%, rgba(139,124,246,0.09), transparent 60%),
+    radial-gradient(ellipse 980px 720px at 40% 108%, rgba(20,121,214,0.12), transparent 62%);
+}
+.bg-grid{
+  background-image:
+    linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 1100px 800px at 50% 0%, #000 10%, transparent 72%);
+  -webkit-mask-image:radial-gradient(ellipse 1100px 800px at 50% 0%, #000 10%, transparent 72%);
+}
+.bg-noise{
+  opacity:0.035; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.bg-dots{
+  position:absolute; inset:0;
+  background-image:radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1.4px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(180deg, transparent, #000 8%, #000 40%, transparent 70%);
+  -webkit-mask-image:linear-gradient(180deg, transparent, #000 8%, #000 40%, transparent 70%);
+  opacity:0.5;
+}
+
+/* ---------- Signature ambient layer: drifting fa/en glyphs ----------
+   Small Persian and Latin characters drift slowly upward through the page —
+   a visual echo of the product's own subject: mixed-language text finding
+   its place. The hero's locked RTL/LTR mock is the "after"; this is the
+   loose, floating "before". Respects reduced-motion (frozen in place). */
+.glyph-field{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
+.glyph{
+  position:absolute; bottom:-60px; will-change:transform, opacity;
+  font-weight:700; color:var(--accent-blue-glow); opacity:0;
+  animation-name:glyphDrift; animation-timing-function:linear; animation-iteration-count:infinite;
+  user-select:none;
+}
+.glyph.gold{color:var(--accent-gold-bright);}
+.glyph.violet{color:var(--accent-violet);}
+.glyph.en{font-family:var(--font-en);}
+@keyframes glyphDrift{
+  0%{ transform:translateY(0) translateX(0) rotate(0deg); opacity:0; }
+  8%{ opacity:var(--glyph-op, 0.16); }
+  50%{ transform:translateY(-52vh) translateX(var(--glyph-drift, 24px)) rotate(var(--glyph-rot, 10deg)); }
+  92%{ opacity:var(--glyph-op, 0.16); }
+  100%{ transform:translateY(-108vh) translateX(calc(var(--glyph-drift, 24px) * -1)) rotate(calc(var(--glyph-rot, 10deg) * -1)); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .glyph{animation:none !important; opacity:0 !important;}
+}
+@media (max-width:640px){
+  .glyph-field{opacity:0.6;}
+}
+
+.container{max-width:1180px; margin:0 auto; padding:0 24px; position:relative; z-index:1;}
+a{color:inherit; text-decoration:none;}
+ul{list-style:none;}
+img{max-width:100%; display:block;}
+::selection{background:var(--accent-blue-bright); color:#fff;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--bg-black);}
+::-webkit-scrollbar-thumb{background:var(--border-soft-2); border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-blue);}
+:focus-visible{outline:2px solid var(--accent-blue-glow); outline-offset:3px; border-radius:6px;}
+
+.navbar{position:fixed; top:0; left:0; right:0; z-index:100; padding:16px 0; transition:all .35s ease;}
+.navbar-inner{
+  max-width:1180px; margin:0 auto; padding:12px 22px;
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  background:rgba(17,19,24,0.58);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--radius-pill);
+  transition:all .35s ease;
+}
+.navbar.scrolled .navbar-inner{
+  background:rgba(9,10,13,0.8);
+  border-color:rgba(255,255,255,0.09);
+  box-shadow:var(--shadow-soft);
+}
+.nav-logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.05rem; flex-shrink:0;}
+.nav-logo .logo-badge{
+  width:36px; height:36px; border-radius:11px;
+  background:linear-gradient(135deg, var(--accent-blue-bright), var(--accent-blue));
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; box-shadow:var(--shadow-glow-blue); color:#fff; flex-shrink:0;
+}
+.nav-links{display:flex; align-items:center; gap:2px;}
+.nav-links a{padding:9px 15px; border-radius:var(--radius-pill); font-size:.9rem; color:var(--text-secondary); transition:all .25s ease; white-space:nowrap;}
+.nav-links a:hover{color:var(--text-primary); background:rgba(255,255,255,0.06);}
+.nav-cta{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+
+.lang-switch{
+  display:flex; align-items:center; gap:2px; padding:3px;
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+  border-radius:var(--radius-pill);
+}
+.lang-switch button{
+  border:none; background:transparent; color:var(--text-secondary);
+  font-family:inherit; font-size:.78rem; font-weight:700; letter-spacing:.02em;
+  padding:7px 13px; border-radius:var(--radius-pill); cursor:pointer; transition:all .2s ease;
+}
+.lang-switch button.active{background:linear-gradient(135deg, var(--accent-blue-bright), var(--accent-blue)); color:#fff; box-shadow:0 2px 14px rgba(20,121,214,0.4);}
+.lang-switch button:not(.active):hover{color:var(--text-primary);}
+
+.nav-toggle{
+  display:none; width:40px; height:40px; border-radius:12px;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-primary); align-items:center; justify-content:center;
+  cursor:pointer; font-size:1.05rem; flex-shrink:0;
+}
+
+.mobile-menu{
+  position:fixed; top:82px; left:16px; right:16px; z-index:99;
+  background:rgba(13,14,17,0.94);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-lg);
+  padding:14px; display:none; flex-direction:column; gap:4px;
+  box-shadow:var(--shadow-soft); opacity:0; transform:translateY(-10px);
+  pointer-events:none; transition:all .3s ease;
+}
+.mobile-menu.open{display:flex; opacity:1; transform:translateY(0); pointer-events:auto;}
+.mobile-menu a{padding:13px 16px; border-radius:var(--radius-md); color:var(--text-secondary); font-size:.95rem;}
+.mobile-menu a:hover{background:rgba(255,255,255,0.06); color:var(--text-primary);}
+.mobile-menu .lang-switch{align-self:flex-start; margin-top:6px;}
+
+.float-stack{position:fixed; bottom:26px; z-index:90; display:flex; flex-direction:column; gap:12px;}
+html[dir="rtl"] .float-stack{left:26px;}
+html[dir="ltr"] .float-stack{right:26px;}
+.float-btn{
+  width:56px; height:56px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:1.35rem; box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  transition:transform .25s ease;
+}
+.float-btn:hover{transform:scale(1.08);}
+.float-telegram{background:linear-gradient(135deg, var(--accent-blue-bright), var(--accent-blue)); box-shadow:0 8px 30px rgba(20,121,214,0.45); animation:floatBob 3.2s ease-in-out infinite;}
+.float-linkedin{background:linear-gradient(135deg, #0a66c2, #084d94); width:46px; height:46px; font-size:1.1rem; align-self:flex-end;}
+@keyframes floatBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+@media(max-width:860px){.nav-links{display:none;} .nav-toggle{display:flex;} .nav-cta .lang-switch{display:none;}}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px 30px; border-radius:var(--radius-pill); font-family:inherit;
+  font-size:.96rem; font-weight:700; cursor:pointer; border:none;
+  transition:all .25s ease; white-space:nowrap;
+}
+.btn-pill{padding:11px 22px; font-size:.88rem;}
+.btn-blue{background:linear-gradient(135deg, var(--accent-blue-bright), var(--accent-blue)); color:#fff; box-shadow:var(--shadow-glow-blue);}
+.btn-blue:hover{transform:translateY(-2px); box-shadow:0 12px 40px rgba(20,121,214,0.4);}
+.btn-gold{background:linear-gradient(135deg, var(--accent-gold-bright), var(--accent-gold)); color:#1a1305; box-shadow:var(--shadow-glow-gold);}
+.btn-gold:hover{transform:translateY(-2px); box-shadow:0 12px 34px rgba(232,162,58,0.35);}
+.btn-outline{background:rgba(255,255,255,0.04); color:var(--text-primary); border:1px solid rgba(255,255,255,0.14);}
+.btn-outline:hover{background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.22);}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none !important;}
+
+.hero{padding:170px 0 90px; position:relative;}
+.hero-badge{
+  display:inline-flex; align-items:center; gap:8px; padding:8px 18px;
+  border-radius:var(--radius-pill); background:rgba(20,121,214,0.1);
+  border:1px solid rgba(20,121,214,0.28); color:var(--accent-blue-glow);
+  font-size:.82rem; font-weight:600; margin-bottom:26px;
+}
+.hero-badge .dot{width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success); animation:pulseDot 1.8s infinite;}
+@keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+.hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:50px; align-items:center;}
+.hero h1{font-size:clamp(2.2rem, 4.4vw, 3.4rem); font-weight:900; line-height:1.35; margin-bottom:22px;}
+html[data-lang="en"] .hero h1{line-height:1.2;}
+.hero h1 .grad{background:linear-gradient(90deg, var(--accent-blue-glow), var(--accent-gold-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero p.lead{color:var(--text-secondary); font-size:1.08rem; max-width:560px; margin-bottom:34px;}
+.hero-actions{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:40px;}
+.hero-stats{display:flex; gap:36px; flex-wrap:wrap;}
+.hero-stat b{display:block; font-size:1.5rem; font-weight:800; color:var(--text-primary);}
+.hero-stat span{font-size:.82rem; color:var(--text-muted);}
+
+/* ---------- Signature element: the "locked layout" document mock ---------- */
+.hero-visual{position:relative;}
+.mock-window{
+  background:linear-gradient(180deg, #16181d, #0f1013);
+  border:1px solid var(--border-soft-2); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-soft), 0 0 90px rgba(20,121,214,0.10);
+  overflow:hidden; position:relative;
+}
+.mock-window::before{
+  content:""; position:absolute; inset:0; padding:1px; border-radius:inherit;
+  background:linear-gradient(135deg, rgba(58,168,255,0.35), transparent 30%, transparent 70%, rgba(245,185,79,0.25));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+}
+.mock-titlebar{display:flex; align-items:center; gap:8px; padding:14px 18px; background:#0b0c0e; border-bottom:1px solid var(--border-soft);}
+.mock-dot{width:11px; height:11px; border-radius:50%;}
+.mock-titlebar span.mock-file{margin-inline-start:8px; font-size:.74rem; color:var(--text-muted); font-family:var(--font-en);}
+.mock-body{padding:26px;}
+.mock-line{height:14px; border-radius:7px; background:linear-gradient(90deg, var(--border-soft), var(--border-soft-2)); margin-bottom:12px;}
+
+/* Split RTL/LTR block that visually "locks together" — the signature motif */
+.mock-split{
+  display:flex; border-radius:var(--radius-sm); overflow:hidden; margin:18px 0;
+  border:1px solid rgba(20,121,214,0.18);
+}
+.mock-split-half{padding:16px 18px; font-size:.88rem; line-height:2; flex:1;}
+.mock-split-fa{
+  direction:rtl; text-align:right; background:rgba(20,121,214,0.08); color:var(--text-secondary);
+  border-inline-end:1px dashed rgba(58,168,255,0.3);
+}
+.mock-split-en{
+  direction:ltr; text-align:left; background:rgba(232,162,58,0.06); color:var(--text-secondary); font-family:var(--font-en);
+}
+.mock-split-seam{
+  width:2px; background:linear-gradient(180deg, var(--accent-blue-glow), var(--accent-gold-bright)); flex-shrink:0;
+}
+
+.mock-badge-row{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+.mock-chip{display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:var(--radius-pill); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); font-size:.76rem; color:var(--text-secondary);}
+.mock-chip i{color:var(--success); font-size:.7rem;}
+
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;} .hero{padding:140px 0 60px;} .mock-split{flex-direction:column;} .mock-split-fa{border-inline-end:none; border-bottom:1px dashed rgba(58,168,255,0.3);}}
+
+section{padding:90px 0; position:relative;}
+.section-head{text-align:center; max-width:640px; margin:0 auto 56px;}
+.section-tag{display:inline-block; padding:6px 16px; border-radius:var(--radius-pill); background:rgba(232,162,58,0.1); border:1px solid rgba(232,162,58,0.25); color:var(--accent-gold-bright); font-size:.78rem; font-weight:700; margin-bottom:16px;}
+.section-head h2{font-size:clamp(1.6rem, 3vw, 2.3rem); font-weight:800; margin-bottom:14px;}
+.section-head p{color:var(--text-secondary); font-size:1rem;}
+
+/* ---------- Problem / Solution intro ---------- */
+.intro-grid{display:grid; grid-template-columns:1fr 1fr; gap:0; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border-soft); box-shadow:var(--shadow-soft);}
+.intro-col{padding:40px 36px; position:relative;}
+.intro-col-problem{background:linear-gradient(160deg, rgba(239,68,68,0.08), var(--bg-card) 60%);}
+.intro-col-solution{background:linear-gradient(160deg, rgba(62,207,142,0.08), var(--bg-card) 60%);}
+.intro-eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:.78rem; font-weight:700; letter-spacing:.03em; margin-bottom:16px; padding:5px 14px; border-radius:var(--radius-pill);}
+.intro-eyebrow.problem{color:#fca5a5; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25);}
+.intro-eyebrow.solution{color:#86efac; background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.25);}
+.intro-col h3{font-size:1.3rem; font-weight:800; margin-bottom:14px;}
+.intro-col p{color:var(--text-secondary); font-size:.96rem; margin-bottom:14px;}
+.intro-col ul{display:flex; flex-direction:column; gap:10px; margin-top:18px;}
+.intro-col li{display:flex; align-items:flex-start; gap:10px; font-size:.9rem; color:var(--text-secondary);}
+.intro-col li i{margin-top:4px; flex-shrink:0; font-size:.8rem;}
+.intro-col-problem li i{color:#f87171;}
+.intro-col-solution li i{color:var(--success);}
+.intro-divider{width:1px; background:var(--border-soft);}
+@media(max-width:860px){.intro-grid{grid-template-columns:1fr;}}
+
+.feature-groups{display:flex; flex-direction:column; gap:40px;}
+.feature-group{position:relative;}
+.feature-group-head{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
+.feature-group-num{
+  flex-shrink:0; width:38px; height:38px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:.95rem; font-family:var(--font-en);
+  border:1px solid rgba(255,255,255,0.1);
+}
+.feature-group[data-tone="blue"] .feature-group-num{background:rgba(20,121,214,0.14); color:var(--accent-blue-glow); border-color:rgba(20,121,214,0.25);}
+.feature-group[data-tone="green"] .feature-group-num{background:rgba(62,207,142,0.14); color:var(--success); border-color:rgba(62,207,142,0.25);}
+.feature-group[data-tone="gold"] .feature-group-num{background:rgba(232,162,58,0.14); color:var(--accent-gold-bright); border-color:rgba(232,162,58,0.25);}
+.feature-group-titles h3{font-size:1.02rem; font-weight:800; margin-bottom:2px;}
+.feature-group-titles span{font-size:.82rem; color:var(--text-muted);}
+.feature-group-rail{
+  position:absolute; top:52px; bottom:6px; inset-inline-start:18px; width:1px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.14), transparent 92%);
+  z-index:0;
+}
+.feature-group-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; padding-inline-start:56px;}
+.feature-group-grid.cols-2{grid-template-columns:repeat(2, 1fr);}
+
+.feature-card{
+  background:linear-gradient(180deg, var(--bg-card), var(--bg-panel));
+  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:30px 26px; transition:all .3s ease; position:relative; overflow:hidden;
+}
+.feature-card:hover{border-color:rgba(20,121,214,0.4); transform:translateY(-4px); box-shadow:var(--shadow-soft);}
+.feature-icon{width:54px; height:54px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; margin-bottom:20px;}
+.feature-icon.blue{background:rgba(20,121,214,0.12); color:var(--accent-blue-glow);}
+.feature-icon.gold{background:rgba(232,162,58,0.12); color:var(--accent-gold-bright);}
+.feature-icon.green{background:rgba(62,207,142,0.12); color:var(--success);}
+.feature-icon.violet{background:rgba(139,124,246,0.12); color:var(--accent-violet);}
+.feature-card h3{font-size:1.08rem; font-weight:700; margin-bottom:10px;}
+.feature-card p{color:var(--text-secondary); font-size:.9rem; line-height:1.9;}
+
+/* Scroll-reveal: gated behind a JS-added class, so content stays visible
+   by default if JavaScript is disabled or fails — never invisible-by-default.
+   The entrance state also resolves before hover ever engages, so the two
+   transforms never fight each other. */
+.js-reveal-ready .reveal-item{opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease;}
+.reveal-item.revealed{opacity:1; transform:translateY(0);}
+/* Explicit higher-specificity override so the existing hover-lift on
+   feature cards still applies once a card has been revealed. */
+.feature-card.reveal-item.revealed:hover{transform:translateY(-4px);}
+@media (prefers-reduced-motion: reduce){
+  .js-reveal-ready .reveal-item{opacity:1; transform:none;}
+}
+
+@media(max-width:900px){.feature-group-grid{grid-template-columns:1fr 1fr; padding-inline-start:0;} .feature-group-grid.cols-2{grid-template-columns:1fr 1fr;} .feature-group-rail{display:none;}}
+@media(max-width:600px){.feature-group-grid, .feature-group-grid.cols-2{grid-template-columns:1fr;}}
+
+.specs-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;}
+.spec-card{
+  background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-md);
+  padding:22px; text-align:center;
+}
+.spec-card i{font-size:1.4rem; color:var(--accent-blue-glow); margin-bottom:12px; display:block;}
+.spec-card b{display:block; font-size:.9rem; margin-bottom:4px;}
+.spec-card span{font-size:.78rem; color:var(--text-muted);}
+@media(max-width:760px){.specs-grid{grid-template-columns:1fr 1fr;}}
+
+.video-wrap{max-width:880px; margin:0 auto; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border-soft-2); box-shadow:var(--shadow-soft); background:var(--bg-panel);}
+.video-frame{position:relative; width:100%; padding-top:56.25%; background:#000;}
+.video-frame iframe,
+.video-frame video{position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; object-fit:contain;}
+.video-empty{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:var(--text-muted); padding:0 30px; text-align:center;}
+.video-empty i{font-size:2.2rem;}
+.video-empty span{font-size:.85rem;}
+
+.download-box{
+  max-width:760px; margin:0 auto;
+  background:linear-gradient(160deg, rgba(20,121,214,0.1), rgba(232,162,58,0.05));
+  border:1px solid rgba(20,121,214,0.25); border-radius:var(--radius-lg);
+  padding:46px 40px; text-align:center;
+}
+.download-box .dl-icon{
+  width:74px; height:74px; border-radius:22px; margin:0 auto 22px;
+  display:flex; align-items:center; justify-content:center; font-size:1.8rem;
+  background:linear-gradient(135deg, var(--accent-blue-bright), var(--accent-blue));
+  box-shadow:var(--shadow-glow-blue);
+}
+.download-box h3{font-size:1.4rem; font-weight:800; margin-bottom:6px;}
+.download-box .version-tag{display:inline-block; font-size:.78rem; color:var(--accent-gold-bright); background:rgba(232,162,58,0.1); border:1px solid rgba(232,162,58,0.25); padding:3px 12px; border-radius:var(--radius-pill); margin-bottom:16px;}
+.download-box p{color:var(--text-secondary); margin-bottom:28px;}
+.download-meta{display:flex; justify-content:center; gap:22px; flex-wrap:wrap; margin-top:26px; font-size:.82rem; color:var(--text-muted);}
+.download-meta span{display:flex; align-items:center; gap:7px;}
+.download-note{margin-top:20px; font-size:.78rem; color:var(--text-muted); max-width:480px; margin-left:auto; margin-right:auto;}
+
+.license-grid{display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start;}
+.license-info h3{font-size:1.35rem; font-weight:800; margin-bottom:16px;}
+.license-info p{color:var(--text-secondary); margin-bottom:24px;}
+.license-step{display:flex; gap:14px; margin-bottom:18px;}
+.license-step .num{
+  flex-shrink:0; width:34px; height:34px; border-radius:50%;
+  background:rgba(20,121,214,0.14); border:1px solid rgba(20,121,214,0.3); color:var(--accent-blue-glow);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem;
+}
+.license-step div p{margin:0; color:var(--text-secondary); font-size:.9rem;}
+.license-step div b{display:block; margin-bottom:3px; font-size:.95rem;}
+
+.telegram-alt{
+  margin-top:26px; padding:18px 20px; background:rgba(255,255,255,0.03);
+  border:1px solid var(--border-soft-2); border-radius:var(--radius-md);
+  display:flex; align-items:center; gap:14px;
+}
+.telegram-alt i{font-size:1.6rem; color:var(--accent-blue-glow); flex-shrink:0;}
+.telegram-alt a{font-weight:700; color:var(--accent-blue-glow); font-family:var(--font-en); direction:ltr; display:inline-block;}
+.telegram-alt .copy-btn{
+  margin-inline-start:auto; background:rgba(255,255,255,0.06); border:1px solid var(--border-soft-2);
+  color:var(--text-secondary); font-size:.75rem; padding:6px 12px; border-radius:var(--radius-pill); cursor:pointer;
+  font-family:inherit; flex-shrink:0; transition:all .2s ease;
+}
+.telegram-alt .copy-btn:hover{color:var(--text-primary); background:rgba(255,255,255,0.1);}
+
+.license-form{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:32px;}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block; font-size:.85rem; color:var(--text-secondary); margin-bottom:8px; font-weight:600;}
+.form-group input{
+  width:100%; padding:14px 18px; border-radius:var(--radius-sm);
+  background:var(--bg-panel-2); border:1px solid var(--border-soft-2); color:var(--text-primary);
+  font-family:inherit; font-size:.92rem; outline:none; transition:all .2s ease;
+}
+.form-group input:focus{border-color:var(--accent-blue-bright); box-shadow:0 0 0 3px rgba(20,121,214,0.15);}
+.form-group input::placeholder{color:var(--text-muted);}
+.form-honeypot{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; opacity:0; pointer-events:none;}
+.form-msg{margin-top:16px; padding:13px 16px; border-radius:var(--radius-sm); font-size:.86rem; display:none;}
+.form-msg.show{display:block;}
+.form-msg.ok{background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.3); color:var(--success);}
+.form-msg.err{background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5;}
+.license-form .btn{width:100%; margin-top:6px;}
+
+@media(max-width:860px){.license-grid{grid-template-columns:1fr;}}
+
+.faq-list{max-width:760px; margin:0 auto;}
+.faq-item{background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-md); margin-bottom:12px; overflow:hidden;}
+.faq-q{padding:19px 24px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-weight:700; font-size:.95rem; gap:12px;}
+.faq-q i{transition:transform .25s ease; color:var(--accent-blue-glow); flex-shrink:0;}
+.faq-item.open .faq-q i{transform:rotate(180deg);}
+.faq-a{max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 24px; color:var(--text-secondary); font-size:.88rem;}
+.faq-item.open .faq-a{max-height:240px; padding-bottom:20px;}
+
+footer{border-top:1px solid var(--border-soft); padding:50px 0 30px; margin-top:20px;}
+.footer-grid{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; margin-bottom:30px;}
+.footer-logo{display:flex; align-items:center; gap:10px; font-weight:800;}
+.footer-links{display:flex; gap:20px; flex-wrap:wrap;}
+.footer-links a{color:var(--text-secondary); font-size:.88rem;}
+.footer-links a:hover{color:var(--text-primary);}
+.footer-social{display:flex; gap:10px;}
+.footer-social a{width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--border-soft-2); display:flex; align-items:center; justify-content:center; transition:all .2s ease;}
+.footer-social a:hover{background:var(--accent-blue); border-color:var(--accent-blue);}
+.footer-bottom{text-align:center; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--text-muted); font-size:.8rem;}
+
+/* ---------- i18n visibility ---------- */
+[data-i18n]{ }
+html[data-lang="fa"] [data-lang-only="en"]{display:none !important;}
+html[data-lang="en"] [data-lang-only="fa"]{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="bg-layer bg-mesh"></div>
+<div class="bg-layer bg-grid"></div>
+<div class="bg-layer bg-dots"></div>
+<div class="bg-layer bg-noise"></div>
+<div class="glyph-field" id="glyphField" aria-hidden="true"></div>
+
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="#top" class="nav-logo">
+      <span class="logo-badge"><i class="fa-solid fa-file-lines"></i></span>
+      Pro <span style="color:var(--accent-gold-bright)">IDF</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" data-i18n="nav.features">ویژگی‌ها</a>
+      <a href="#specs" data-i18n="nav.specs">مشخصات فنی</a>
+      <a href="#video" data-i18n="nav.video">ویدیوی معرفی</a>
+      <a href="#download" data-i18n="nav.download">دانلود</a>
+      <a href="#license" data-i18n="nav.license">دریافت لایسنس</a>
+      <a href="#faq" data-i18n="nav.faq">سوالات متداول</a>
+    </div>
+    <div class="nav-cta">
+      <div class="lang-switch" role="group" aria-label="Language switch">
+        <button type="button" data-set-lang="fa" class="active">فا</button>
+        <button type="button" data-set-lang="en">EN</button>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="منو"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#features" data-i18n="nav.features">ویژگی‌ها</a>
+    <a href="#specs" data-i18n="nav.specs">مشخصات فنی</a>
+    <a href="#video" data-i18n="nav.video">ویدیوی معرفی</a>
+    <a href="#download" data-i18n="nav.download">دانلود</a>
+    <a href="#license" data-i18n="nav.license">دریافت لایسنس</a>
+    <a href="#faq" data-i18n="nav.faq">سوالات متداول</a>
+    <div class="lang-switch" role="group" aria-label="Language switch">
+      <button type="button" data-set-lang="fa" class="active">فارسی</button>
+      <button type="button" data-set-lang="en">English</button>
+    </div>
+  </div>
+</nav>
+
+<div class="float-stack">
+  <a href="https://www.linkedin.com/in/Taha-Kelley" target="_blank" rel="noopener noreferrer" class="float-btn float-linkedin" title="LinkedIn">
+    <i class="fa-brands fa-linkedin-in"></i>
+  </a>
+  <a href="https://t.me/Bypass_Tec" target="_blank" rel="noopener noreferrer" class="float-btn float-telegram" title="Telegram">
+    <i class="fa-brands fa-telegram"></i>
+  </a>
+</div>
+
+<header class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge"><span class="dot"></span> <span data-i18n="hero.badge">این صفحه دائم به‌روزرسانی می‌شود</span></div>
+        <h1 data-i18n="hero.title">فرمت‌بندی حرفه‌ای اسناد <span class="grad" data-i18n="hero.titleGrad">فارسی و انگلیسی</span> با یک کلیک</h1>
+        <p class="lead" data-i18n="hero.lead">IDF Pro ابزاری دسکتاپ برای تبدیل متن ساده به فایل Word استاندارد است؛ با دقت بالا در تشخیص و چیدمان درست متن راست‌به‌چپ و چپ‌به‌راست در کنار هم، خروجی تمیز، سریع و بدون خطای چینش تحویل می‌دهد.</p>
+        <div class="hero-actions">
+          <a href="#download" class="btn btn-blue"><i class="fa-solid fa-download"></i> <span data-i18n="hero.ctaDownload">دانلود برنامه</span></a>
+          <a href="#video" class="btn btn-outline"><i class="fa-solid fa-play"></i> <span data-i18n="hero.ctaVideo">مشاهده ویدیوی معرفی</span></a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><b data-i18n="hero.stat1b">سریع</b><span data-i18n="hero.stat1s">تبدیل آنی حتی برای فایل‌های حجیم</span></div>
+          <div class="hero-stat"><b data-i18n="hero.stat2b">دقیق</b><span data-i18n="hero.stat2s">چیدمان بی‌نقص راست‌چین و چپ‌چین</span></div>
+          <div class="hero-stat"><b data-i18n="hero.stat3b">۱۰۰٪</b><span data-i18n="hero.stat3s">عملکرد آفلاین و بدون نیاز به اینترنت</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="mock-window">
+          <div class="mock-titlebar">
+            <span class="mock-dot" style="background:#ff5f57"></span>
+            <span class="mock-dot" style="background:#febc2e"></span>
+            <span class="mock-dot" style="background:#28c840"></span>
+            <span class="mock-file">document.docx</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-line" style="width:40%"></div>
+            <div class="mock-line" style="width:70%"></div>
+            <div class="mock-line" style="width:55%"></div>
+            <div class="mock-split">
+              <div class="mock-split-half mock-split-fa" data-i18n="hero.mockFa">سند شما به‌صورت خودکار تحلیل و به Word با چیدمان صحیح تبدیل می‌شود.</div>
+              <div class="mock-split-seam"></div>
+              <div class="mock-split-half mock-split-en" data-i18n="hero.mockEn">Mixed with English text — seamlessly locked in place.</div>
+            </div>
+            <div class="mock-badge-row">
+              <span class="mock-chip"><i class="fa-solid fa-circle-check"></i> <span data-i18n="hero.chip1">پشتیبانی کامل راست‌چین و چپ‌چین</span></span>
+              <span class="mock-chip"><i class="fa-solid fa-circle-check"></i> <span data-i18n="hero.chip2">فعال‌سازی امن و آفلاین</span></span>
+              <span class="mock-chip"><i class="fa-solid fa-circle-check"></i> <span data-i18n="hero.chip3">خروجی استاندارد Word</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="intro">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="intro.tag">چالش و راه‌حل</span>
+      <h2 data-i18n="intro.title">مشکل رایج در تبدیل متن دوزبانه به Word</h2>
+      <p data-i18n="intro.sub">قبل از IDF Pro، تبدیل متن دوزبانه به Word یعنی ساعت‌ها دستکاری دستی. ببینید چه چیزی تغییر کرده.</p>
+    </div>
+    <div class="intro-grid">
+      <div class="intro-col intro-col-problem">
+        <span class="intro-eyebrow problem"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="intro.problemTag">مشکل</span></span>
+        <h3 data-i18n="intro.problemTitle">چیدمان متن ترکیبی در Word به‌هم می‌ریزد</h3>
+        <p data-i18n="intro.problemBody">وقتی متن فارسی و انگلیسی، یا اعداد و علائم نگارشی در کنار هم قرار می‌گیرند، Word اغلب جهت درست را تشخیص نمی‌دهد. نتیجه؟ جمله‌ها برعکس می‌شوند، اعداد جابه‌جا می‌شوند و ساعت‌ها وقت صرف اصلاح دستی چیدمان می‌شود.</p>
+        <ul>
+          <li><i class="fa-solid fa-xmark"></i> <span data-i18n="intro.problem1">قرارگیری اشتباه کلمات لاتین داخل جمله‌ی فارسی</span></li>
+          <li><i class="fa-solid fa-xmark"></i> <span data-i18n="intro.problem2">جابه‌جایی اعداد و علائم نگارشی در نقطه‌ی اتصال دو زبان</span></li>
+          <li><i class="fa-solid fa-xmark"></i> <span data-i18n="intro.problem3">تنظیم دستی و زمان‌بر خط‌به‌خط سند در Word</span></li>
+        </ul>
+      </div>
+      <div class="intro-col intro-col-solution">
+        <span class="intro-eyebrow solution"><i class="fa-solid fa-circle-check"></i> <span data-i18n="intro.solutionTag">راه‌حل</span></span>
+        <h3 data-i18n="intro.solutionTitle">چیدمان سند، همیشه درست — بدون دخالت دستی</h3>
+        <p data-i18n="intro.solutionBody">به‌جای اصلاح دستی، IDF Pro متن شما را تحلیل می‌کند، جهت هر بخش را به‌درستی تشخیص می‌دهد و یک فایل Word استاندارد و آماده تحویل می‌سازد؛ همه‌چیز به‌صورت آفلاین و در چند ثانیه.</p>
+        <ul>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="intro.solution1">تشخیص خودکار و دقیق راست‌چین/چپ‌چین در متون ترکیبی</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="intro.solution2">خروجی DOCX استاندارد، آماده برای ارسال یا چاپ</span></li>
+          <li><i class="fa-solid fa-check"></i> <span data-i18n="intro.solution3">پردازش آنی، بدون نیاز به اتصال اینترنت</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="features.tag">چرا IDF Pro؟</span>
+      <h2 data-i18n="features.title">ساخته‌شده برای دقت، سرعت و امنیت</h2>
+      <p data-i18n="features.sub">هفت ویژگی کلیدی که IDF Pro را از یک مبدل ساده به یک ابزار حرفه‌ای تبدیل می‌کند.</p>
+    </div>
+
+    <div class="feature-groups">
+
+      <div class="feature-group" data-tone="blue">
+        <div class="feature-group-head">
+          <div class="feature-group-num">01</div>
+          <div class="feature-group-titles">
+            <h3 data-i18n="features.g1Title">دقت و سرعت</h3>
+            <span data-i18n="features.g1Sub">هسته‌ی اصلی کار برنامه</span>
+          </div>
+        </div>
+        <div class="feature-group-rail"></div>
+        <div class="feature-group-grid cols-2">
+          <div class="feature-card reveal-item">
+            <div class="feature-icon blue"><i class="fa-solid fa-align-right"></i></div>
+            <h3 data-i18n="features.f1Title">پشتیبانی از متون ترکیبی</h3>
+            <p data-i18n="features.f1Body">فارسی، عربی و انگلیسی را در یک سند و حتی یک خط، بدون کوچک‌ترین به‌هم‌ریختگی چیدمان، دقیقاً مطابق استاندارد Word کنار هم قرار می‌دهد.</p>
+          </div>
+          <div class="feature-card reveal-item">
+            <div class="feature-icon gold"><i class="fa-solid fa-gauge-high"></i></div>
+            <h3 data-i18n="features.f2Title">سرعت و دقت بالا</h3>
+            <p data-i18n="features.f2Body">فایل‌های حجیم در چند ثانیه پردازش می‌شوند و اعداد، علائم و کاراکترهای ترکیبی همیشه در جای درست خود قرار می‌گیرند.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-group" data-tone="green">
+        <div class="feature-group-head">
+          <div class="feature-group-num">02</div>
+          <div class="feature-group-titles">
+            <h3 data-i18n="features.g2Title">امنیت و اطمینان</h3>
+            <span data-i18n="features.g2Sub">چیزی که می‌توانید رویش حساب کنید</span>
+          </div>
+        </div>
+        <div class="feature-group-rail"></div>
+        <div class="feature-group-grid cols-2">
+          <div class="feature-card reveal-item">
+            <div class="feature-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 data-i18n="features.f3Title">امنیت و پایداری</h3>
+            <p data-i18n="features.f3Body">سیستم لایسنس کاملاً آفلاین و غیرقابل دور زدن است؛ برنامه تحت آزمایش‌های گسترده قرار گرفته تا بدون خطا و کرش کار کند.</p>
+          </div>
+          <div class="feature-card reveal-item">
+            <div class="feature-icon blue"><i class="fa-solid fa-plug"></i></div>
+            <h3 data-i18n="features.f6Title">عملکرد کاملاً آفلاین</h3>
+            <p data-i18n="features.f6Body">تبدیل متن و فعال‌سازی لایسنس هر دو بدون نیاز به اینترنت انجام می‌شوند؛ هیچ داده‌ای از سیستم شما خارج نمی‌شود.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-group" data-tone="gold">
+        <div class="feature-group-head">
+          <div class="feature-group-num">03</div>
+          <div class="feature-group-titles">
+            <h3 data-i18n="features.g3Title">تجربه و ارزش</h3>
+            <span data-i18n="features.g3Sub">آنچه استفاده‌ی روزمره را ساده می‌کند</span>
+          </div>
+        </div>
+        <div class="feature-group-rail"></div>
+        <div class="feature-group-grid">
+          <div class="feature-card reveal-item">
+            <div class="feature-icon violet"><i class="fa-solid fa-palette"></i></div>
+            <h3 data-i18n="features.f4Title">ظاهر گرافیکی حرفه‌ای</h3>
+            <p data-i18n="features.f4Body">رابط کاربری مینیمال و تیره، همراه با پیش‌نمایش زنده‌ی سند پیش از ذخیره؛ همه‌چیز ساده، مرتب و بدون شلوغی.</p>
+          </div>
+          <div class="feature-card reveal-item">
+            <div class="feature-icon gold"><i class="fa-solid fa-file-word"></i></div>
+            <h3 data-i18n="features.f5Title">خروجی استاندارد Word</h3>
+            <p data-i18n="features.f5Body">فایل نهایی یک DOCX واقعی است که در Microsoft Word، LibreOffice و هر ابزار سازگار دیگر بی‌نقص باز و ویرایش می‌شود.</p>
+          </div>
+          <div class="feature-card reveal-item">
+            <div class="feature-icon green"><i class="fa-solid fa-sack-dollar"></i></div>
+            <h3 data-i18n="features.f7Title">مقرون‌به‌صرفه با پشتیبانی مستقیم</h3>
+            <p data-i18n="features.f7Body">قیمتی منصفانه در برابر امکانات حرفه‌ای، همراه با پشتیبانی سریع و پاسخ‌گو از طریق تلگرام برای رفع هر مشکل.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="specs">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="specs.tag">مشخصات فنی</span>
+      <h2 data-i18n="specs.title">در یک نگاه</h2>
+    </div>
+    <div class="specs-grid">
+      <div class="spec-card reveal-item">
+        <i class="fa-solid fa-desktop"></i>
+        <b data-i18n="specs.s1b">ویندوز ۱۰ / ۱۱</b>
+        <span data-i18n="specs.s1s">سیستم عامل پشتیبانی‌شده</span>
+      </div>
+      <div class="spec-card reveal-item">
+        <i class="fa-solid fa-microchip"></i>
+        <b data-i18n="specs.s2b">۶۴ بیتی</b>
+        <span data-i18n="specs.s2s">معماری اجرایی</span>
+      </div>
+      <div class="spec-card reveal-item">
+        <i class="fa-solid fa-plug"></i>
+        <b data-i18n="specs.s3b">بدون نیاز به اینترنت</b>
+        <span data-i18n="specs.s3s">اجرا و فعال‌سازی آفلاین</span>
+      </div>
+      <div class="spec-card reveal-item">
+        <i class="fa-solid fa-lock"></i>
+        <b data-i18n="specs.s4b">لایسنس امن</b>
+        <span data-i18n="specs.s4s">فعال‌سازی اختصاصی هر سیستم</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="video">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="video.tag">مشاهده کنید</span>
+      <h2 data-i18n="video.title">ویدیوی معرفی IDF Pro</h2>
+      <p data-i18n="video.sub">در این ویدیو، عملکرد برنامه، رابط کاربری و نحوه‌ی کار با متون راست‌چین و چپ‌چین به‌صورت کامل نمایش داده می‌شود.</p>
+    </div>
+    <div class="video-wrap">
+      <div class="video-frame">
+          <!-- Primary source: local video file. Place IDF_intro.mp4 next to this index.html file.
+               If you'd rather embed an Aparat video instead, replace the <video> block below with:
+               <iframe src="YOUR_APARAT_EMBED_URL" allowfullscreen loading="lazy"></iframe> -->
+          <video controls preload="metadata" playsinline> 
+            <source src="IDF_intro.mp4" type="video/mp4">
+          </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="container">
+    <div class="download-box">
+      <div class="dl-icon"><i class="fa-solid fa-download"></i></div>
+      <h3 data-i18n="download.title">دانلود IDF Pro</h3>
+      <span class="version-tag" data-i18n="download.versionTag">همیشه آخرین نسخه</span>
+      <p data-i18n="download.body">نصب‌کننده‌ی رسمی برنامه را دانلود کرده و طبق مراحل نصب پیش بروید. برای فعال‌سازی، از بخش «دریافت لایسنس» استفاده کنید.</p>
+      <a href="https://drive.google.com/uc?export=download&amp;id=1BbpOTSA5OsF2i-L7hs1Jk876GIDFWtGS" class="btn btn-gold" id="downloadBtn" rel="noopener noreferrer">
+        <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="download.cta">دانلود نسخه‌ی جدید</span>
+      </a>
+      <div class="download-meta">
+        <span><i class="fa-solid fa-desktop"></i> <span data-i18n="download.m1">ویندوز ۱۰ / ۱۱</span></span>
+        <span><i class="fa-solid fa-shield-halved"></i> <span data-i18n="download.m2">نصب‌کننده‌ی امضاشده</span></span>
+        <span><i class="fa-solid fa-plug"></i> <span data-i18n="download.m3">اجرای کاملاً آفلاین</span></span>
+      </div>
+      <p class="download-note" data-i18n="download.note">دانلود از طریق Google Drive انجام می‌شود. برای فایل‌های حجیم ممکن است گوگل صفحه‌ی «امکان اسکن ویروس نیست» را نشان دهد؛ روی «دانلود در هر صورت» بزنید تا دریافت فایل شروع شود.</p>
+    </div>
+  </div>
+</section>
+
+<section id="license">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="license.tag">فعال‌سازی</span>
+      <h2 data-i18n="license.title">دریافت لایسنس IDF Pro</h2>
+      <p data-i18n="license.sub">برای فعال‌سازی برنامه، اطلاعات زیر را ثبت کنید تا لایسنس اختصاصی برایتان صادر و ارسال شود.</p>
+    </div>
+
+    <div class="license-grid">
+      <div class="license-info">
+        <h3 data-i18n="license.howTitle">روند دریافت لایسنس چطور است؟</h3>
+        <div class="license-step">
+          <div class="num" data-i18n="license.stepNum1">۱</div>
+          <div><b data-i18n="license.step1b">ثبت درخواست</b><p data-i18n="license.step1p">فرم کنار را با شماره تماس و ایمیل معتبر خود تکمیل کنید.</p></div>
+        </div>
+        <div class="license-step">
+          <div class="num" data-i18n="license.stepNum2">۲</div>
+          <div><b data-i18n="license.step2b">بررسی و صدور</b><p data-i18n="license.step2p">درخواست شما بررسی شده و لایسنس اختصاصی صادر می‌شود.</p></div>
+        </div>
+        <div class="license-step">
+          <div class="num" data-i18n="license.stepNum3">۳</div>
+          <div><b data-i18n="license.step3b">ارسال و فعال‌سازی</b><p data-i18n="license.step3p">فایل لایسنس برای شما ارسال شده و در برنامه وارد می‌شود.</p></div>
+        </div>
+
+        <div class="telegram-alt">
+          <i class="fa-brands fa-telegram"></i>
+          <div>
+            <div style="font-size:.85rem;color:var(--text-secondary);margin-bottom:2px;" data-i18n="license.tgLine">یا مستقیم از طریق تلگرام پیام بدهید:</div>
+            <a href="https://t.me/Bypass_Tec" target="_blank" rel="noopener noreferrer" id="telegramLink">@Bypass_Tec</a>
+          </div>
+          <button type="button" class="copy-btn" id="copyTelegram" data-i18n="license.copyBtn">کپی آیدی</button>
+        </div>
+      </div>
+
+      <form class="license-form" id="licenseForm" autocomplete="off" novalidate>
+        <div class="form-group">
+          <label for="f_name" data-i18n="license.fName">نام و نام خانوادگی</label>
+          <input type="text" id="f_name" name="name" data-i18n-placeholder="license.fNamePh" placeholder="مثال: علی محمدی" required minlength="2" maxlength="80">
+        </div>
+        <div class="form-group">
+          <label for="f_phone" data-i18n="license.fPhone">شماره تماس</label>
+          <input type="tel" id="f_phone" name="phone" placeholder="09xxxxxxxxx" required>
+        </div>
+        <div class="form-group">
+          <label for="f_email" data-i18n="license.fEmail">ایمیل</label>
+          <input type="email" id="f_email" name="email" placeholder="example@email.com" required maxlength="120">
+        </div>
+        <div class="form-honeypot" aria-hidden="true">
+          <label for="f_website">Website</label>
+          <input type="text" id="f_website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-blue" id="submitBtn">
+          <i class="fa-solid fa-paper-plane"></i> <span data-i18n="license.submit">ارسال درخواست لایسنس</span>
+        </button>
+        <div class="form-msg" id="formMsg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag" data-i18n="faq.tag">راهنما</span>
+      <h2 data-i18n="faq.title">سوالات متداول</h2>
+    </div>
+    <div class="faq-list" id="faqList">
+      <div class="faq-item reveal-item">
+        <div class="faq-q"><span data-i18n="faq.q1">آیا IDF Pro بدون اینترنت هم کار می‌کند؟</span><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><p data-i18n="faq.a1">بله. تبدیل متن به Word و اعتبارسنجی لایسنس هر دو به‌صورت کاملاً آفلاین روی سیستم شما انجام می‌شود.</p></div>
+      </div>
+      <div class="faq-item reveal-item">
+        <div class="faq-q"><span data-i18n="faq.q2">لایسنس روی چند سیستم قابل استفاده است؟</span><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><p data-i18n="faq.a2">هر لایسنس به‌صورت پیش‌فرض به مشخصات سخت‌افزاری همان سیستم قفل می‌شود. برای انتقال لایسنس به سیستم دیگر، از طریق تلگرام با ما در ارتباط باشید.</p></div>
+      </div>
+      <div class="faq-item reveal-item">
+        <div class="faq-q"><span data-i18n="faq.q3">خروجی برنامه با Word استاندارد سازگار است؟</span><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><p data-i18n="faq.a3">بله. خروجی یک فایل DOCX استاندارد است و در Microsoft Word، LibreOffice و سایر ابزارهای سازگار به‌درستی باز می‌شود.</p></div>
+      </div>
+      <div class="faq-item reveal-item">
+        <div class="faq-q"><span data-i18n="faq.q4">بعد از ارسال درخواست، لایسنس چقدر طول می‌کشد؟</span><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><p data-i18n="faq.a4">درخواست‌ها به‌صورت دستی بررسی می‌شوند. برای سرعت بیشتر، می‌توانید مستقیماً از طریق تلگرام پیگیری کنید.</p></div>
+      </div>
+      <div class="faq-item reveal-item">
+        <div class="faq-q"><span data-i18n="faq.q5">چرا دکمه‌ی ارسال درخواست غیرفعال شد؟</span><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><p data-i18n="faq.a5">دکمه فقط در حین ارسال فرم و برای چند لحظه غیرفعال می‌شود تا از ارسال تکراری جلوگیری شود. اگر بعد از چند ثانیه دوباره فعال نشد، صفحه را رفرش کرده یا از طریق تلگرام پیام بدهید.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-logo">
+        <span class="logo-badge"><i class="fa-solid fa-file-lines"></i></span>
+        IDF <span style="color:var(--accent-gold-bright)">Pro</span>
+      </div>
+      <div class="footer-links">
+        <a href="#features" data-i18n="nav.features">ویژگی‌ها</a>
+        <a href="#video" data-i18n="footer.video">ویدیو</a>
+        <a href="#download" data-i18n="nav.download">دانلود</a>
+        <a href="#license" data-i18n="footer.license">لایسنس</a>
+      </div>
+      <div class="footer-social">
+        <a href="https://t.me/Bypass_Tec" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-telegram"></i></a>
+        <a href="https://www.linkedin.com/in/Taha-Kelley" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 Bypass Tec — <span data-i18n="footer.rights">تمامی حقوق محفوظ است.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   i18n dictionary — fa / en
+   ===================================================================== */
+const I18N = {
+  fa: {
+    "nav.features":"ویژگی‌ها","nav.specs":"مشخصات فنی","nav.video":"ویدیوی معرفی","nav.download":"دانلود","nav.license":"دریافت لایسنس","nav.faq":"سوالات متداول",
+    "hero.badge":"این صفحه دائم به‌روزرسانی می‌شود",
+    "hero.title":"فرمت‌بندی حرفه‌ای اسناد ",
+    "hero.titleGrad":"فارسی و انگلیسی",
+    "hero.lead":"IDF Pro ابزاری دسکتاپ برای تبدیل متن ساده به فایل Word استاندارد است؛ با دقت بالا در تشخیص و چیدمان درست متن راست‌به‌چپ و چپ‌به‌راست در کنار هم، خروجی تمیز، سریع و بدون خطای چینش تحویل می‌دهد.",
+    "hero.ctaDownload":"دانلود برنامه","hero.ctaVideo":"مشاهده ویدیوی معرفی",
+    "hero.stat1b":"سریع","hero.stat1s":"تبدیل آنی حتی برای فایل‌های حجیم",
+    "hero.stat2b":"دقیق","hero.stat2s":"چیدمان بی‌نقص راست‌چین و چپ‌چین",
+    "hero.stat3b":"۱۰۰٪","hero.stat3s":"عملکرد آفلاین و بدون نیاز به اینترنت",
+    "hero.chip1":"پشتیبانی کامل راست‌چین و چپ‌چین","hero.chip2":"فعال‌سازی امن و آفلاین","hero.chip3":"خروجی استاندارد Word",
+    "hero.mockFa":"سند شما به‌صورت خودکار تحلیل و به Word با چیدمان صحیح تبدیل می‌شود.",
+    "hero.mockEn":"Mixed with English text — seamlessly locked in place.",
+    "intro.tag":"چالش و راه‌حل","intro.title":"مشکل رایج در تبدیل متن دوزبانه به Word",
+    "intro.sub":"قبل از IDF Pro، تبدیل متن دوزبانه به Word یعنی ساعت‌ها دستکاری دستی. ببینید چه چیزی تغییر کرده.",
+    "intro.problemTag":"مشکل","intro.problemTitle":"چیدمان متن ترکیبی در Word به‌هم می‌ریزد",
+    "intro.problemBody":"وقتی متن فارسی و انگلیسی، یا اعداد و علائم نگارشی در کنار هم قرار می‌گیرند، Word اغلب جهت درست را تشخیص نمی‌دهد. نتیجه؟ جمله‌ها برعکس می‌شوند، اعداد جابه‌جا می‌شوند و ساعت‌ها وقت صرف اصلاح دستی چیدمان می‌شود.",
+    "intro.problem1":"قرارگیری اشتباه کلمات لاتین داخل جمله‌ی فارسی",
+    "intro.problem2":"جابه‌جایی اعداد و علائم نگارشی در نقطه‌ی اتصال دو زبان",
+    "intro.problem3":"تنظیم دستی و زمان‌بر خط‌به‌خط سند در Word",
+    "intro.solutionTag":"راه‌حل","intro.solutionTitle":"چیدمان سند، همیشه درست — بدون دخالت دستی",
+    "intro.solutionBody":"به‌جای اصلاح دستی، IDF Pro متن شما را تحلیل می‌کند، جهت هر بخش را به‌درستی تشخیص می‌دهد و یک فایل Word استاندارد و آماده تحویل می‌سازد؛ همه‌چیز به‌صورت آفلاین و در چند ثانیه.",
+    "intro.solution1":"تشخیص خودکار و دقیق راست‌چین/چپ‌چین در متون ترکیبی",
+    "intro.solution2":"خروجی DOCX استاندارد، آماده برای ارسال یا چاپ",
+    "intro.solution3":"پردازش آنی، بدون نیاز به اتصال اینترنت",
+    "features.tag":"چرا IDF Pro؟","features.title":"ساخته‌شده برای دقت، سرعت و امنیت",
+    "features.sub":"هفت ویژگی کلیدی که IDF Pro را از یک مبدل ساده به یک ابزار حرفه‌ای تبدیل می‌کند.",
+    "features.g1Title":"دقت و سرعت","features.g1Sub":"هسته‌ی اصلی کار برنامه",
+    "features.g2Title":"امنیت و اطمینان","features.g2Sub":"چیزی که می‌توانید رویش حساب کنید",
+    "features.g3Title":"تجربه و ارزش","features.g3Sub":"آنچه استفاده‌ی روزمره را ساده می‌کند",
+    "features.f1Title":"پشتیبانی از متون ترکیبی","features.f1Body":"فارسی، عربی و انگلیسی را در یک سند و حتی یک خط، بدون کوچک‌ترین به‌هم‌ریختگی چیدمان، دقیقاً مطابق استاندارد Word کنار هم قرار می‌دهد.",
+    "features.f2Title":"سرعت و دقت بالا","features.f2Body":"فایل‌های حجیم در چند ثانیه پردازش می‌شوند و اعداد، علائم و کاراکترهای ترکیبی همیشه در جای درست خود قرار می‌گیرند.",
+    "features.f3Title":"امنیت و پایداری","features.f3Body":"سیستم لایسنس کاملاً آفلاین و غیرقابل دور زدن است؛ برنامه تحت آزمایش‌های گسترده قرار گرفته تا بدون خطا و کرش کار کند.",
+    "features.f4Title":"ظاهر گرافیکی حرفه‌ای","features.f4Body":"رابط کاربری مینیمال و تیره، همراه با پیش‌نمایش زنده‌ی سند پیش از ذخیره؛ همه‌چیز ساده، مرتب و بدون شلوغی.",
+    "features.f5Title":"خروجی استاندارد Word","features.f5Body":"فایل نهایی یک DOCX واقعی است که در Microsoft Word، LibreOffice و هر ابزار سازگار دیگر بی‌نقص باز و ویرایش می‌شود.",
+    "features.f6Title":"عملکرد کاملاً آفلاین","features.f6Body":"تبدیل متن و فعال‌سازی لایسنس هر دو بدون نیاز به اینترنت انجام می‌شوند؛ هیچ داده‌ای از سیستم شما خارج نمی‌شود.",
+    "features.f7Title":"مقرون‌به‌صرفه با پشتیبانی مستقیم","features.f7Body":"قیمتی منصفانه در برابر امکانات حرفه‌ای، همراه با پشتیبانی سریع و پاسخ‌گو از طریق تلگرام برای رفع هر مشکل.",
+    "specs.tag":"مشخصات فنی","specs.title":"در یک نگاه",
+    "specs.s1b":"ویندوز ۱۰ / ۱۱","specs.s1s":"سیستم عامل پشتیبانی‌شده",
+    "specs.s2b":"۶۴ بیتی","specs.s2s":"معماری اجرایی",
+    "specs.s3b":"بدون نیاز به اینترنت","specs.s3s":"اجرا و فعال‌سازی آفلاین",
+    "specs.s4b":"لایسنس امن","specs.s4s":"فعال‌سازی اختصاصی هر سیستم",
+    "video.tag":"مشاهده کنید","video.title":"ویدیوی معرفی IDF Pro",
+    "video.sub":"در این ویدیو، عملکرد برنامه، رابط کاربری و نحوه‌ی کار با متون راست‌چین و چپ‌چین به‌صورت کامل نمایش داده می‌شود.",
+    "video.empty":"ویدیو هنوز تنظیم نشده. فایل IDF_intro.mp4 را کنار همین فایل index.html قرار دهید.",
+    "download.title":"دانلود IDF Pro","download.versionTag":"همیشه آخرین نسخه",
+    "download.body":"نصب‌کننده‌ی رسمی برنامه را دانلود کرده و طبق مراحل نصب پیش بروید. برای فعال‌سازی، از بخش «دریافت لایسنس» استفاده کنید.",
+    "download.cta":"دانلود نسخه‌ی جدید","download.m1":"ویندوز ۱۰ / ۱۱","download.m2":"نصب‌کننده‌ی امضاشده","download.m3":"اجرای کاملاً آفلاین",
+    "download.note":"دانلود از طریق Google Drive انجام می‌شود. برای فایل‌های حجیم ممکن است گوگل صفحه‌ی «امکان اسکن ویروس نیست» را نشان دهد؛ روی «دانلود در هر صورت» بزنید تا دریافت فایل شروع شود.",
+    "license.tag":"فعال‌سازی","license.title":"دریافت لایسنس IDF Pro",
+    "license.sub":"برای فعال‌سازی برنامه، اطلاعات زیر را ثبت کنید تا لایسنس اختصاصی برایتان صادر و ارسال شود.",
+    "license.howTitle":"روند دریافت لایسنس چطور است؟",
+    "license.stepNum1":"۱","license.stepNum2":"۲","license.stepNum3":"۳",
+    "license.step1b":"ثبت درخواست","license.step1p":"فرم کنار را با شماره تماس و ایمیل معتبر خود تکمیل کنید.",
+    "license.step2b":"بررسی و صدور","license.step2p":"درخواست شما بررسی شده و لایسنس اختصاصی صادر می‌شود.",
+    "license.step3b":"ارسال و فعال‌سازی","license.step3p":"فایل لایسنس برای شما ارسال شده و در برنامه وارد می‌شود.",
+    "license.tgLine":"یا مستقیم از طریق تلگرام پیام بدهید:","license.copyBtn":"کپی آیدی",
+    "license.fName":"نام و نام خانوادگی","license.fNamePh":"مثال: علی محمدی",
+    "license.fPhone":"شماره تماس","license.fEmail":"ایمیل","license.submit":"ارسال درخواست لایسنس",
+    "faq.tag":"راهنما","faq.title":"سوالات متداول",
+    "faq.q1":"آیا IDF Pro بدون اینترنت هم کار می‌کند؟","faq.a1":"بله. تبدیل متن به Word و اعتبارسنجی لایسنس هر دو به‌صورت کاملاً آفلاین روی سیستم شما انجام می‌شود.",
+    "faq.q2":"لایسنس روی چند سیستم قابل استفاده است؟","faq.a2":"هر لایسنس به‌صورت پیش‌فرض به مشخصات سخت‌افزاری همان سیستم قفل می‌شود. برای انتقال لایسنس به سیستم دیگر، از طریق تلگرام با ما در ارتباط باشید.",
+    "faq.q3":"خروجی برنامه با Word استاندارد سازگار است؟","faq.a3":"بله. خروجی یک فایل DOCX استاندارد است و در Microsoft Word، LibreOffice و سایر ابزارهای سازگار به‌درستی باز می‌شود.",
+    "faq.q4":"بعد از ارسال درخواست، لایسنس چقدر طول می‌کشد؟","faq.a4":"درخواست‌ها به‌صورت دستی بررسی می‌شوند. برای سرعت بیشتر، می‌توانید مستقیماً از طریق تلگرام پیگیری کنید.",
+    "faq.q5":"چرا دکمه‌ی ارسال درخواست غیرفعال شد؟","faq.a5":"دکمه فقط در حین ارسال فرم و برای چند لحظه غیرفعال می‌شود تا از ارسال تکراری جلوگیری شود. اگر بعد از چند ثانیه دوباره فعال نشد، صفحه را رفرش کرده یا از طریق تلگرام پیام بدهید.",
+    "footer.rights":"تمامی حقوق محفوظ است.","footer.video":"ویدیو","footer.license":"لایسنس",
+    "form.errName":"لطفاً نام معتبر وارد کنید.","form.errPhone":"لطفاً شماره تماس معتبر وارد کنید.","form.errEmail":"لطفاً ایمیل معتبر وارد کنید.",
+    "form.sending":"در حال ارسال...","form.success":"درخواست شما با موفقیت ثبت شد. تا حداکثر 48 ساعت آینده اطلاعات لایسنس برایتان ارسال می‌شود.",
+    "form.genericErr":"خطایی رخ داد. لطفاً دوباره تلاش کنید.","form.networkErr":"ارتباط با سرور برقرار نشد. لطفاً از طریق تلگرام پیام دهید.",
+    "copy.copied":"کپی شد ✓"
+  },
+  en: {
+    "nav.features":"Features","nav.specs":"Specs","nav.video":"Video","nav.download":"Download","nav.license":"Get License","nav.faq":"FAQ",
+    "hero.badge":"This page is updated continuously",
+    "hero.title":"Professional formatting for ",
+    "hero.titleGrad":"Persian & English documents",
+    "hero.lead":"IDF Pro is a desktop tool that converts plain text into a standard Word file. With precise detection and correct layout of right-to-left and left-to-right text side by side, it delivers a clean, fast output with zero layout errors.",
+    "hero.ctaDownload":"Download the app","hero.ctaVideo":"Watch the intro video",
+    "hero.stat1b":"Fast","hero.stat1s":"Instant conversion even for large files",
+    "hero.stat2b":"Accurate","hero.stat2s":"Flawless RTL and LTR layout",
+    "hero.stat3b":"100%","hero.stat3s":"Fully offline, no internet required",
+    "hero.chip1":"Full RTL/LTR support","hero.chip2":"Secure offline activation","hero.chip3":"Standard Word output",
+    "hero.mockFa":"سند شما به‌طور خودکار تحلیل می‌شود.",
+    "hero.mockEn":"...and converted to Word with correct layout, every time.",
+    "intro.tag":"Problem & solution","intro.title":"The problem you deal with every day",
+    "intro.sub":"Before IDF Pro, converting bilingual text to Word meant hours of manual fixing. Here's what's changed.",
+    "intro.problemTag":"The problem","intro.problemTitle":"Mixed-language layout breaks in Word",
+    "intro.problemBody":"When Persian and English text — or numbers and punctuation — sit next to each other, Word often gets the direction wrong. The result: reversed sentences, misplaced numbers, and hours spent manually fixing the layout.",
+    "intro.problem1":"Latin words placed incorrectly inside Persian sentences",
+    "intro.problem2":"Numbers and punctuation shifting at the language boundary",
+    "intro.problem3":"Slow, line-by-line manual adjustment in Word",
+    "intro.solutionTag":"The solution","intro.solutionTitle":"IDF Pro locks the layout for you",
+    "intro.solutionBody":"Instead of manual fixes, IDF Pro analyzes your text, correctly detects the direction of each segment, and produces a ready-to-deliver standard Word file — all offline, in seconds.",
+    "intro.solution1":"Automatic, accurate RTL/LTR detection in mixed text",
+    "intro.solution2":"Standard DOCX output, ready to send or print",
+    "intro.solution3":"Instant processing, no internet connection needed",
+    "features.tag":"Why IDF Pro?","features.title":"Built for accuracy, speed and security",
+    "features.sub":"Seven key strengths that turn IDF Pro from a simple converter into a professional tool.",
+    "features.g1Title":"Accuracy & Speed","features.g1Sub":"The core of what the app does",
+    "features.g2Title":"Security & Reliability","features.g2Sub":"Something you can count on",
+    "features.g3Title":"Experience & Value","features.g3Sub":"What makes everyday use easy",
+    "features.f1Title":"Mixed-language support","features.f1Body":"Places Persian, Arabic, and English in one document — even one line — without the slightest layout disruption, exactly to Word's standard.",
+    "features.f2Title":"Speed & precision","features.f2Body":"Large files are processed in seconds, and numbers, punctuation, and mixed characters always land in the right place.",
+    "features.f3Title":"Security & stability","features.f3Body":"The license system is fully offline and tamper-resistant; the app has been tested extensively to run without errors or crashes.",
+    "features.f4Title":"Professional visual design","features.f4Body":"A minimal, dark interface with a live document preview before saving — a smooth experience, free of visual clutter.",
+    "features.f5Title":"Standard Word output","features.f5Body":"The final file is a genuine DOCX that opens and edits flawlessly in Microsoft Word, LibreOffice, and any compatible tool.",
+    "features.f6Title":"Fully offline operation","features.f6Body":"Both text conversion and license activation work without an internet connection; no data ever leaves your system.",
+    "features.f7Title":"Affordable, with direct support","features.f7Body":"Fair pricing for professional-grade features, backed by fast, responsive support on Telegram for any issue.",
+    "specs.tag":"Specifications","specs.title":"At a glance",
+    "specs.s1b":"Windows 10 / 11","specs.s1s":"Supported operating system",
+    "specs.s2b":"64-bit","specs.s2s":"Execution architecture",
+    "specs.s3b":"No internet required","specs.s3s":"Offline execution and activation",
+    "specs.s4b":"Secure license","specs.s4s":"Per-device activation",
+    "video.tag":"Watch","video.title":"IDF Pro introduction video",
+    "video.sub":"This video walks through the app's functionality, interface, and how it handles RTL/LTR text.",
+    "video.empty":"The video hasn't been set up yet. Place a file named IDF_intro.mp4 next to this index.html file.",
+    "download.title":"Download IDF Pro","download.versionTag":"Always the latest version",
+    "download.body":"Download the official installer and follow the setup steps. Use the “Get License” section below to activate the app.",
+    "download.cta":"Download latest version","download.m1":"Windows 10 / 11","download.m2":"Signed installer","download.m3":"Fully offline execution",
+    "download.note":"Download is served via Google Drive. For large files, Google may show a “can't scan for viruses” notice — click “Download anyway” to proceed.",
+    "license.tag":"Activation","license.title":"Get your IDF Pro license",
+    "license.sub":"Submit the details below and a dedicated license will be issued and sent to you.",
+    "license.howTitle":"How does licensing work?",
+    "license.stepNum1":"1","license.stepNum2":"2","license.stepNum3":"3",
+    "license.step1b":"Submit a request","license.step1p":"Fill in the form with a valid phone number and email address.",
+    "license.step2b":"Review & issuance","license.step2p":"Your request is reviewed and a dedicated license is issued.",
+    "license.step3b":"Delivery & activation","license.step3p":"The license file is sent to you and entered into the app.",
+    "license.tgLine":"Or message us directly on Telegram:","license.copyBtn":"Copy ID",
+    "license.fName":"Full name","license.fNamePh":"e.g. John Smith",
+    "license.fPhone":"Phone number","license.fEmail":"Email address","license.submit":"Send license request",
+    "faq.tag":"Help","faq.title":"Frequently asked questions",
+    "faq.q1":"Does IDF Pro work without internet?","faq.a1":"Yes. Both text conversion to Word and license validation run fully offline on your system.",
+    "faq.q2":"How many devices can a license be used on?","faq.a2":"By default, each license is locked to the hardware of one device. To transfer a license to another device, contact us on Telegram.",
+    "faq.q3":"Is the output compatible with standard Word?","faq.a3":"Yes. The output is a standard DOCX file and opens correctly in Microsoft Word, LibreOffice, and other compatible tools.",
+    "faq.q4":"How long does it take to receive a license after requesting?","faq.a4":"Requests are reviewed manually. For a faster response, you can follow up directly on Telegram.",
+    "faq.q5":"Why was the submit button disabled?","faq.a5":"The button is only disabled briefly while your request is being sent, to prevent duplicate submissions. If it doesn't re-enable after a few seconds, refresh the page or message us on Telegram.",
+    "footer.rights":"All rights reserved.","footer.video":"Video","footer.license":"License",
+    "form.errName":"Please enter a valid name.","form.errPhone":"Please enter a valid phone number.","form.errEmail":"Please enter a valid email address.",
+    "form.sending":"Sending...","form.success":"Your request was submitted successfully. Your license will be sent to you shortly.",
+    "form.genericErr":"Something went wrong. Please try again.","form.networkErr":"Couldn't reach the server. Please message us on Telegram.",
+    "copy.copied":"Copied ✓"
+  }
+};
+
+let currentLang = 'fa';
+
+function applyLang(lang){
+  currentLang = lang;
+  const dict = I18N[lang];
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('data-lang', lang);
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key] !== undefined) el.setAttribute('placeholder', dict[key]);
+  });
+  document.querySelectorAll('[data-set-lang]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-set-lang') === lang);
+  });
+
+  try { localStorage.setItem('idf_lang', lang); } catch (e) {}
+}
+
+document.querySelectorAll('[data-set-lang]').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.getAttribute('data-set-lang')));
+});
+
+(function initLang(){
+  let saved = null;
+  try { saved = localStorage.getItem('idf_lang'); } catch (e) {}
+  applyLang(saved === 'en' ? 'en' : 'fa');
+})();
+
+/* ---------- Ambient glyph field ----------
+   Drifting Persian + Latin characters, echoing the product's own subject:
+   mixed-language text finding its place. Skipped entirely under
+   prefers-reduced-motion, and paused while the tab is hidden. */
+(function initGlyphField(){
+  const field = document.getElementById('glyphField');
+  if (!field) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const FA_GLYPHS = ['ا','ب','پ','ت','ث','ج','چ','د','ر','س','ش','ک','گ','ل','م','ن','و','ه','ی'];
+  const EN_GLYPHS = ['A','B','C','D','W','R','S','T'];
+  const MICRO_GLYPHS = ['\u200f','\u200e','۰۱','01'];
+  const COLOR_CLASSES = ['', 'gold', 'violet'];
+
+  const isSmallScreen = window.innerWidth < 640;
+  const COUNT = isSmallScreen ? 16 : 30;
+  const frag = document.createDocumentFragment();
+
+  for (let i = 0; i < COUNT; i++) {
+    const span = document.createElement('span');
+    const pool = Math.random() < 0.12 ? MICRO_GLYPHS : (Math.random() < 0.55 ? FA_GLYPHS : EN_GLYPHS);
+    const glyph = pool[Math.floor(Math.random() * pool.length)];
+    const isEn = EN_GLYPHS.includes(glyph);
+    const colorClass = COLOR_CLASSES[Math.floor(Math.random() * COLOR_CLASSES.length)];
+
+    span.textContent = glyph;
+    span.className = 'glyph' + (colorClass ? ' ' + colorClass : '') + (isEn ? ' en' : '');
+
+    const size = 14 + Math.random() * 22;
+    const left = Math.random() * 100;
+    const duration = 22 + Math.random() * 26;
+    const delay = -(Math.random() * (duration));
+    const drift = (Math.random() * 60 - 30).toFixed(0) + 'px';
+    const rot = (Math.random() * 30 - 15).toFixed(0) + 'deg';
+    const op = (0.10 + Math.random() * 0.16).toFixed(2);
+
+    span.style.left = left + '%';
+    span.style.fontSize = size.toFixed(0) + 'px';
+    span.style.animationDuration = duration.toFixed(1) + 's';
+    span.style.animationDelay = delay.toFixed(1) + 's';
+    span.style.setProperty('--glyph-drift', drift);
+    span.style.setProperty('--glyph-rot', rot);
+    span.style.setProperty('--glyph-op', op);
+
+    frag.appendChild(span);
+  }
+  field.appendChild(frag);
+
+  document.addEventListener('visibilitychange', () => {
+    field.style.animationPlayState = document.hidden ? 'paused' : 'running';
+    field.querySelectorAll('.glyph').forEach(g => {
+      g.style.animationPlayState = document.hidden ? 'paused' : 'running';
+    });
+  });
+})();
+
+/* ---------- Scroll-reveal for feature/spec/faq cards ----------
+   Gated behind IntersectionObserver support and prefers-reduced-motion;
+   falls through silently (content stays visible) on any older browser. */
+(function initScrollReveal(){
+  const items = document.querySelectorAll('.reveal-item');
+  if (!items.length) return;
+  if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  document.body.classList.add('js-reveal-ready');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  // Stagger delay resets per parent container, so each row/group cascades
+  // in its own visual order rather than following one page-wide counter.
+  const containerCounters = new WeakMap();
+  items.forEach((item) => {
+    const parent = item.parentElement;
+    const count = containerCounters.get(parent) || 0;
+    item.style.transitionDelay = Math.min(count, 3) * 70 + 'ms';
+    containerCounters.set(parent, count + 1);
+    observer.observe(item);
+  });
+})();
+
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 30);
+});
+
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+navToggle.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+mobileMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+});
+document.addEventListener('click', (e) => {
+  if (!mobileMenu.contains(e.target) && !navToggle.contains(e.target)) {
+    mobileMenu.classList.remove('open');
+  }
+});
+
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+const copyBtn = document.getElementById('copyTelegram');
+if (copyBtn) {
+  copyBtn.addEventListener('click', async () => {
+    const id = document.getElementById('telegramLink').textContent.trim();
+    try {
+      await navigator.clipboard.writeText(id);
+      const original = copyBtn.textContent;
+      copyBtn.textContent = I18N[currentLang]['copy.copied'];
+      setTimeout(() => { copyBtn.textContent = original; }, 1800);
+    } catch (err) {
+      // Clipboard API unavailable (e.g. insecure context) — silently ignore.
+    }
+  });
+}
+
+const licenseForm = document.getElementById('licenseForm');
+const formMsg = document.getElementById('formMsg');
+const submitBtn = document.getElementById('submitBtn');
+
+const PHONE_RE = /^\+?[0-9][0-9\-\s()]{6,19}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* =====================================================================
+   Direct submission to Google Sheets (via Google Apps Script Web App)
+   ---------------------------------------------------------------------
+   This page has no server backend, so the license request form submits
+   straight to a Google Apps Script "Web App" endpoint over fetch(). The
+   script appends the row to a Google Sheet and returns a small JSON
+   result. No Google Form is opened, no new tab, no redirect — the
+   visitor stays on this page the whole time and sees a real success or
+   error message based on what the script actually returned.
+
+   TO CONNECT YOUR GOOGLE SHEET:
+   1) Create (or open) the Google Sheet you want responses to land in.
+   2) In the Sheet: Extensions -> Apps Script. Replace the default code
+      with the "doPost" script below, then click Deploy -> New deployment.
+   3) Deployment type: "Web app". Execute as: "Me". Who has access:
+      "Anyone" (this is required for a public form to reach it — the
+      script itself is what controls what can be written, so this is
+      safe as long as the script only appends rows, as below).
+   4) Deploy, authorize the requested permissions, and copy the Web App
+      URL Google gives you (ends in /exec).
+   5) Paste that URL into APPS_SCRIPT_URL below.
+
+   Apps Script code to paste into the Script Editor (Code.gs):
+
+   -----------------------------------------------------------------
+   function doPost(e) {
+     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+     var data = JSON.parse(e.postData.contents);
+
+     // Basic server-side validation mirrors the client-side checks,
+     // since anyone could technically call this URL directly.
+     var name  = String(data.name  || '').trim().slice(0, 80);
+     var phone = String(data.phone || '').trim().slice(0, 20);
+     var email = String(data.email || '').trim().slice(0, 120);
+     var website = String(data.website || ''); // honeypot
+
+     if (website) {
+       // Bot filled the hidden field — pretend success, write nothing.
+       return ContentService.createTextOutput(JSON.stringify({ok:true}))
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+     if (name.length < 2 || !phone || email.indexOf('@') === -1) {
+       return ContentService.createTextOutput(JSON.stringify({ok:false, error:'invalid'}))
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+
+     sheet.appendRow([new Date(), name, phone, email]);
+
+     return ContentService.createTextOutput(JSON.stringify({ok:true}))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   -----------------------------------------------------------------
+   ===================================================================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6Iaqw-kelm3iaTj24mxUMnHa6FMAkZYQTq4NGIiWhH-SGWGT7eeBrYrqPtZVMsveO/exec';
+
+licenseForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const dict = I18N[currentLang];
+
+  const name  = document.getElementById('f_name').value.trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+  const website = document.getElementById('f_website').value; // honeypot
+
+  formMsg.className = 'form-msg';
+  formMsg.textContent = '';
+
+  // Honeypot: if this hidden field got filled, silently pretend success.
+  if (website) {
+    showMsg(dict['form.success'], 'ok');
+    licenseForm.reset();
+    return;
+  }
+
+  if (name.length < 2 || name.length > 80) {
+    showMsg(dict['form.errName'], 'err');
+    return;
+  }
+  if (!PHONE_RE.test(phone) || phone.replace(/\D/g, '').length < 7) {
+    showMsg(dict['form.errPhone'], 'err');
+    return;
+  }
+  if (!EMAIL_RE.test(email) || email.length > 120) {
+    showMsg(dict['form.errEmail'], 'err');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + dict['form.sending'];
+
+  try {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+      // Apps Script not configured yet — tell the developer/visitor clearly.
+      throw new Error('Apps Script URL is not configured yet.');
+    }
+
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight to Apps Script
+      body: JSON.stringify({ name, phone, email, website })
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const result = await res.json();
+    if (!result || result.ok !== true) throw new Error(result && result.error || 'rejected');
+
+    showMsg(dict['form.success'], 'ok');
+    licenseForm.reset();
+  } catch (err) {
+    showMsg(dict['form.networkErr'], 'err');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ' + dict['license.submit'];
+  }
+});
+
+function showMsg(text, type) {
+  formMsg.textContent = text;
+  formMsg.className = 'form-msg show ' + type;
+}
+</script>
+
+</body>
+</html>
